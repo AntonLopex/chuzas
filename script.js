@@ -1,3 +1,24 @@
+// Importar Firebase
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js";
+import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.9.1/firebase-firestore.js";
+
+// Configuración de Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyCICMt3f3B-mqQ7kBBS6VmQHfp13L-hGaI",
+  authDomain: "chuzas-aece8.firebaseapp.com",
+  projectId: "chuzas-aece8",
+  storageBucket: "chuzas-aece8.firebasestorage.app",
+  messagingSenderId: "717958317946",
+  appId: "1:717958317946:web:8678fc258cd672f9ec38c3",
+  measurementId: "G-1S2BW5J8D8"
+};
+
+// Inicializar Firebase y Firestore
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const recuentoRef = doc(db, "bebidas", "recuento");
+
+// Datos
 const people = ["Antón", "Rubas", "BuguiO", "Blete", "Marco", "Vilariño", "Iria"];
 const personImages = {
   "Antón": "img/toni.jpeg",
@@ -10,12 +31,25 @@ const personImages = {
 };
 
 const cardsContainer = document.getElementById("cards");
-let data = JSON.parse(localStorage.getItem("drinkData")) || {};
+let data = {};
 
-function saveData() {
-  localStorage.setItem("drinkData", JSON.stringify(data));
+// 🔄 Escuchar en tiempo real los cambios en Firestore
+onSnapshot(recuentoRef, (docSnap) => {
+  if (docSnap.exists()) {
+    data = docSnap.data();
+    renderCards();
+  } else {
+    data = {};
+    renderCards();
+  }
+});
+
+// 💾 Guardar datos en Firestore
+async function saveData() {
+  await setDoc(recuentoRef, data);
 }
 
+// 🧱 Renderizar tarjetas
 function renderCards() {
   cardsContainer.innerHTML = "";
   people.forEach(person => {
@@ -26,14 +60,23 @@ function renderCards() {
     card.innerHTML = `<h2>${person}</h2>`;
 
     const drinks = data[person] || {};
-    for (const [drink, count] of Object.entries(drinks)) {
+    const hasDrinks = Object.keys(drinks).length > 0;
+
+    if (hasDrinks) {
+      for (const [drink, count] of Object.entries(drinks)) {
+        const entry = document.createElement("div");
+        entry.className = "drink-entry";
+        entry.innerHTML = `
+          <button onclick="updateDrink('${person}', '${drink}', -1)">-</button>
+          <span>${drink}: ${count}</span>
+          <button onclick="updateDrink('${person}', '${drink}', 1)">+</button>
+        `;
+        card.appendChild(entry);
+      }
+    } else {
       const entry = document.createElement("div");
       entry.className = "drink-entry";
-      entry.innerHTML = `
-        <button onclick="updateDrink('${person}', '${drink}', -1)">-</button>
-        <span>${drink}: ${count}</span>
-        <button onclick="updateDrink('${person}', '${drink}', 1)">+</button>
-      `;
+      entry.innerHTML = `<span>No hay bebidas registradas 🍹</span>`;
       card.appendChild(entry);
     }
 
@@ -41,15 +84,17 @@ function renderCards() {
   });
 }
 
-function updateDrink(person, drink, change) {
+
+// ➕➖ Modificar bebida
+window.updateDrink = function (person, drink, change) {
   if (!data[person]) data[person] = {};
   if (!data[person][drink]) data[person][drink] = 0;
   data[person][drink] += change;
   if (data[person][drink] <= 0) delete data[person][drink];
   saveData();
-  renderCards();
-}
+};
 
+// 📩 Formulario
 document.getElementById("drink-form").addEventListener("submit", e => {
   e.preventDefault();
   const drink = document.getElementById("drink").value;
@@ -57,12 +102,10 @@ document.getElementById("drink-form").addEventListener("submit", e => {
   updateDrink(person, drink, 1);
 });
 
-function resetData() {
+// 🔴 Borrar todo
+window.resetData = async function () {
   if (confirm("¿Estás seguro de que quieres borrar todo el progreso?")) {
     data = {};
-    saveData();
-    renderCards();
+    await saveData();
   }
-}
-
-renderCards();
+};
