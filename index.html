@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fiesta Tracker</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <header>
+      <h1>Recuento de Bebidas</h1>
+    </header>
+
+    <form id="drink-form">
+      <label for="drink">Bebida:</label>
+      <select id="drink">
+        <option>Quinto de cerveza</option>
+        <option>Tercio de cerveza</option>
+        <option>Caña</option>
+        <option>Calimotxo</option>
+        <option>Ron cola</option>
+        <option>Ron naranja</option>
+        <option>Ron Red Bull</option>
+        <option>Ron Mango Loco</option>
+        <option>Bacardi limón con limón</option>
+      </select>
+      <label for="person">Borracho:</label>
+      <select id="person">
+        <option>Antón</option>
+        <option>Rubas</option>
+        <option>BuguiO</option>
+        <option>Blete</option>
+        <option>Marco</option>
+        <option>Vilariño</option>
+        <option>Iria</option>
+      </select>
+      <button type="submit">🍺Añadir bebida🍺</button>
+    </form>
+
+    <section class="cards" id="cards"></section>
+
+    <footer>
+      <button class="reset" onclick="resetData()">Vaciar progreso</button>
+    </footer>
+  </body>
+</html>
